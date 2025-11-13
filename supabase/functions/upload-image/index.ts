@@ -65,8 +65,8 @@ Deno.serve(async (req: Request) => {
 
     const canonicalUri = `/${fileName}`;
     const canonicalQueryString = '';
-    const canonicalHeaders = `content-type:${contentType}\nhost:${S3_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com\nx-amz-content-sha256:${fileHash}\nx-amz-date:${amzDate}\n`;
-    const signedHeaders = 'content-type;host;x-amz-content-sha256;x-amz-date';
+    const canonicalHeaders = `content-type:${contentType}\nhost:${S3_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com\nx-amz-acl:public-read\nx-amz-content-sha256:${fileHash}\nx-amz-date:${amzDate}\n`;
+    const signedHeaders = 'content-type;host;x-amz-acl;x-amz-content-sha256;x-amz-date';
     const canonicalRequest = `PUT\n${canonicalUri}\n${canonicalQueryString}\n${canonicalHeaders}\n${signedHeaders}\n${fileHash}`;
 
     const algorithm = 'AWS4-HMAC-SHA256';
@@ -98,6 +98,7 @@ Deno.serve(async (req: Request) => {
       headers: {
         "Content-Type": contentType,
         "x-amz-date": amzDate,
+        "x-amz-acl": "public-read",
         "x-amz-content-sha256": fileHash,
         "Authorization": authorizationHeader,
       },
