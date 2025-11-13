@@ -88,7 +88,7 @@ Deno.serve(async (req: Request) => {
             content: [
               {
                 type: "text",
-                text: "Analyze this image and provide 5-10 relevant tags/keywords that describe the content. Return only comma-separated tags, no explanations.",
+                text: "Analyze this image in detail and generate 10-15 descriptive tags/keywords. Include: 1) Main subjects (people, animals, objects), 2) Clothing items and colors (e.g., 'black t-shirt', 'blue jeans'), 3) Actions or activities, 4) Setting/location, 5) Mood or atmosphere, 6) Notable details. Return ONLY comma-separated tags in lowercase, no explanations or extra text.",
               },
               {
                 type: "image_url",
@@ -99,7 +99,7 @@ Deno.serve(async (req: Request) => {
             ],
           },
         ],
-        max_tokens: 100,
+        max_tokens: 150,
       }),
     });
 

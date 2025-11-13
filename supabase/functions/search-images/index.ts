@@ -58,7 +58,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const searchTerm = query.toLowerCase();
+    const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
 
     const { data: images, error } = await supabase
       .from("images")
@@ -81,11 +81,16 @@ Deno.serve(async (req: Request) => {
 
     const filteredImages = images.filter((image) => {
       const filenameLower = image.filename.toLowerCase();
-      const matchesFilename = filenameLower.includes(searchTerm);
-      const matchesTags = image.tags?.some((tag: string) =>
-        tag.toLowerCase().includes(searchTerm)
-      );
-      return matchesFilename || matchesTags;
+      const tagsLower = (image.tags || []).map((tag: string) => tag.toLowerCase());
+      const allContent = [filenameLower, ...tagsLower].join(' ');
+
+      return searchTerms.every(term => {
+        const matchesFilename = filenameLower.includes(term);
+        const matchesTag = tagsLower.some((tag: string) => tag.includes(term));
+        const matchesMultiWordTag = allContent.includes(searchTerms.join(' '));
+
+        return matchesFilename || matchesTag || matchesMultiWordTag;
+      });
     });
 
     return new Response(
