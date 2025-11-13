@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image as ImageIcon, Edit2, Check, X, Trash2, CheckSquare, Square, Heart, FolderPlus, EyeOff, ZoomIn, Plus } from 'lucide-react';
+import { Image as ImageIcon, Edit2, Check, X, Trash2, CheckSquare, Square, Heart, FolderPlus, EyeOff, ZoomIn, Plus, Sparkles } from 'lucide-react';
 
 interface ImageData {
   id: string;
@@ -655,6 +655,7 @@ export default function ImageGrid({ images, loading, onImageRenamed, onImageDele
                   <p className="text-white text-sm font-medium truncate">{image.filename}</p>
                   {image.tags && image.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
+                      <Sparkles className="w-3 h-3 text-yellow-300 flex-shrink-0 mt-0.5" />
                       {image.tags.slice(0, 3).map((tag, idx) => (
                         <span
                           key={idx}
@@ -663,6 +664,11 @@ export default function ImageGrid({ images, loading, onImageRenamed, onImageDele
                           {tag}
                         </span>
                       ))}
+                      {image.tags.length > 3 && (
+                        <span className="text-xs text-white/70 px-2 py-1">
+                          +{image.tags.length - 3} more
+                        </span>
+                      )}
                     </div>
                   )}
                 </>
@@ -726,15 +732,21 @@ export default function ImageGrid({ images, loading, onImageRenamed, onImageDele
             <div className="mt-4 bg-black/60 backdrop-blur-sm rounded-lg p-4 max-w-full">
               <h3 className="text-white text-lg font-semibold mb-2">{viewingImage.filename}</h3>
               {viewingImage.tags && viewingImage.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {viewingImage.tags.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="text-sm bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-lg"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-4 h-4 text-yellow-300" />
+                    <span className="text-xs text-white/70 font-medium">AI-Generated Tags</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {viewingImage.tags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="text-sm bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-lg"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

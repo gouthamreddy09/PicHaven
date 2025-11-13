@@ -6,12 +6,16 @@ A full-stack image upload and search application similar to Google Photos, built
 ## Features
 
 - Upload images with drag-and-drop interface
+- **🤖 AI-Powered Image Tagging** - Automatic content analysis using OpenAI GPT-4 Vision
 - Real-time image preview before upload
-- Search images by filename or auto-generated tags
+- Search images by filename or AI-generated tags
 - Responsive grid layout with hover animations
 - Cloud storage using AWS S3
 - PostgreSQL database for metadata storage
 - Modern, clean UI with Tailwind CSS
+- User authentication and secure data isolation
+- Albums, favorites, and hidden folder
+- Trash bin with restore functionality
 
 ## Tech Stack
 
@@ -25,6 +29,7 @@ A full-stack image upload and search application similar to Google Photos, built
 - Supabase Edge Functions (Deno runtime)
 - Supabase PostgreSQL database
 - AWS S3 for image storage
+- OpenAI GPT-4 Vision API for AI tagging
 
 ## Prerequisites
 
@@ -37,6 +42,10 @@ Before you begin, ensure you have:
    - AWS Region
 
 2. **Supabase Project** (already configured in this project)
+
+3. **OpenAI API Key** for AI-powered image tagging
+   - Get your API key from: https://platform.openai.com/api-keys
+   - Required for automatic tag generation
 
 ## Setup Instructions
 
@@ -83,13 +92,25 @@ Your S3 bucket should allow public read access for uploaded images. Add this buc
 }
 ```
 
-### 3. Install Dependencies
+### 3. Configure OpenAI API Key
+
+The OpenAI API key should be set in your Supabase Edge Function Secrets (not in .env file):
+
+1. Go to your Supabase Dashboard
+2. Navigate to Settings → Edge Functions → Secrets
+3. Add a new secret:
+   - Name: `OPENAI_API_KEY`
+   - Value: Your OpenAI API key from https://platform.openai.com/api-keys
+
+Note: If the API key is not configured, image uploads will still work but won't have AI-generated tags.
+
+### 4. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 4. Run Development Server
+### 5. Run Development Server
 
 The development server is automatically started for you in this environment.
 
@@ -119,6 +140,7 @@ The development server is automatically started for you in this environment.
 - **Body:** FormData with 'image' file
 - **Description:** Uploads image to S3 and stores metadata in database
 - **Auto-generates tags** from filename
+- **AI Enhancement:** Automatically calls generate-tags to analyze image content and add intelligent tags
 
 ### 2. Get All Images
 - **Endpoint:** `GET /functions/v1/get-images`
@@ -126,7 +148,14 @@ The development server is automatically started for you in this environment.
 
 ### 3. Search Images
 - **Endpoint:** `GET /functions/v1/search-images?query=keyword`
-- **Description:** Searches images by filename or tags (case-insensitive)
+- **Description:** Searches images by filename or AI-generated tags (case-insensitive)
+
+### 4. Generate Tags (AI)
+- **Endpoint:** `POST /functions/v1/generate-tags`
+- **Body:** `{ "imageUrl": "https://..." }`
+- **Description:** Analyzes image content using OpenAI GPT-4 Vision and returns relevant tags
+- **AI Model:** GPT-4o-mini with vision capabilities
+- **Returns:** 5-10 contextually relevant tags based on image content
 
 ## Database Schema
 
@@ -148,14 +177,18 @@ CREATE TABLE images (
    - Preview is shown before upload
    - File is sent to `upload-image` Edge Function
    - Edge Function uploads to S3 using AWS SDK
-   - Metadata (filename, URL, tags) is stored in PostgreSQL
-   - Tags are auto-generated from filename
+   - Initial metadata (filename, URL) is stored in PostgreSQL
+   - Basic tags are extracted from filename
+   - **AI Analysis:** Image is sent to OpenAI GPT-4 Vision API
+   - **Smart Tagging:** AI analyzes image content and generates 5-10 relevant tags
+   - Combined tags (filename + AI-generated) are saved to database
+   - Tags appear with sparkle icon ✨ in the UI
 
 2. **Search Process:**
    - User enters search keyword
    - Frontend calls `search-images` with query parameter
-   - Backend filters images by matching filename or tags
-   - Results are displayed in responsive grid
+   - Backend filters images by matching filename or AI-generated tags
+   - Results are displayed in responsive grid with AI tag indicators
 
 3. **Display:**
    - Images load in responsive grid (2-5 columns)

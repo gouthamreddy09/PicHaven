@@ -107,11 +107,11 @@ export default function UploadForm({ onUploadSuccess, sessionToken }: UploadForm
       }
 
       if (failCount === 0) {
-        setMessage(`All ${successCount} images uploaded successfully! ✓`);
+        setMessage(`All ${successCount} images uploaded successfully! AI is generating tags... ✓`);
       } else if (successCount === 0) {
         setMessage(`All uploads failed. Please try again.`);
       } else {
-        setMessage(`${successCount} uploaded, ${failCount} failed.`);
+        setMessage(`${successCount} uploaded, ${failCount} failed. AI is generating tags...`);
       }
 
       setFiles([]);
@@ -138,6 +138,10 @@ export default function UploadForm({ onUploadSuccess, sessionToken }: UploadForm
         </div>
         <h2 className="text-2xl font-bold text-indigo-900">Upload Photos</h2>
       </div>
+
+      <p className="text-sm text-indigo-700 mb-4">
+        📸 Photos are automatically analyzed by AI to generate relevant tags for easy searching
+      </p>
 
       <div className="space-y-4">
         <div
