@@ -118,10 +118,17 @@ export default function UploadForm({ onUploadSuccess, sessionToken }: UploadForm
       setPreviews([]);
       onUploadSuccess();
 
+      if (successCount > 0) {
+        setTimeout(() => {
+          setMessage('AI tagging complete! Refreshing...');
+          onUploadSuccess();
+        }, 8000);
+      }
+
       setTimeout(() => {
         setMessage('');
         setUploadProgress(null);
-      }, 3000);
+      }, 10000);
     } catch (error) {
       setMessage('Upload failed. Please try again.');
       console.error('Upload error:', error);
