@@ -58,7 +58,21 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+    const stopWords = new Set(['a', 'an', 'the', 'of', 'in', 'on', 'at', 'to', 'for', 'with', 'by', 'from', 'photo', 'photos', 'image', 'images', 'picture', 'pictures']);
+
+    const searchTerms = query.toLowerCase()
+      .split(/\s+/)
+      .filter(term => term.length > 0 && !stopWords.has(term));
+
+    if (searchTerms.length === 0) {
+      return new Response(
+        JSON.stringify({ images: [], count: 0 }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     const { data: images, error } = await supabase
       .from("images")
@@ -87,9 +101,9 @@ Deno.serve(async (req: Request) => {
       return searchTerms.every(term => {
         const matchesFilename = filenameLower.includes(term);
         const matchesTag = tagsLower.some((tag: string) => tag.includes(term));
-        const matchesMultiWordTag = allContent.includes(searchTerms.join(' '));
+        const matchesContent = allContent.includes(term);
 
-        return matchesFilename || matchesTag || matchesMultiWordTag;
+        return matchesFilename || matchesTag || matchesContent;
       });
     });
 
