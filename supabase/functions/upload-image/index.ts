@@ -179,6 +179,8 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       const aiTagsResponse = await fetch(
         `${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-tags`,
         {
@@ -192,10 +194,13 @@ Deno.serve(async (req: Request) => {
       );
 
       if (aiTagsResponse.ok) {
-        const { tags: aiTags } = await aiTagsResponse.json();
-        console.log("AI tags received:", aiTags);
-        if (aiTags && aiTags.length > 0) {
-          const combinedTags = [...new Set([...tags, ...aiTags])];
+        const result = await aiTagsResponse.json();
+        console.log("AI tags response:", result);
+
+        if (result.error) {
+          console.error("AI tagging error:", result.error, result.details);
+        } else if (result.tags && result.tags.length > 0) {
+          const combinedTags = [...new Set([...tags, ...result.tags])];
           await supabase
             .from("images")
             .update({ tags: combinedTags })
