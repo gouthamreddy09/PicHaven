@@ -94,11 +94,15 @@ export default function UploadForm({ onUploadSuccess, sessionToken }: UploadForm
           });
 
           if (response.ok) {
+            const result = await response.json();
+            console.log(`✅ Upload successful for ${file.name}:`, result);
+            console.log(`📦 Image data:`, result.data);
+            console.log(`🏷️ Tags:`, result.data?.tags);
             successCount++;
           } else {
             failCount++;
             const errorData = await response.json();
-            console.error(`Upload failed for ${file.name}:`, errorData);
+            console.error(`❌ Upload failed for ${file.name}:`, errorData);
           }
         } catch (error) {
           failCount++;
