@@ -192,6 +192,7 @@ Deno.serve(async (req: Request) => {
 
       if (aiTagsResponse.ok) {
         const { tags: aiTags } = await aiTagsResponse.json();
+        console.log("AI tags received:", aiTags);
         if (aiTags && aiTags.length > 0) {
           const combinedTags = [...new Set([...tags, ...aiTags])];
           await supabase
@@ -200,7 +201,13 @@ Deno.serve(async (req: Request) => {
             .eq("id", imageData.id);
 
           imageData.tags = combinedTags;
+          console.log("Tags updated successfully:", combinedTags);
+        } else {
+          console.log("No AI tags generated");
         }
+      } else {
+        const errorText = await aiTagsResponse.text();
+        console.error("AI tagging failed with status:", aiTagsResponse.status, errorText);
       }
     } catch (aiError) {
       console.error("AI tagging error (non-critical):", aiError);

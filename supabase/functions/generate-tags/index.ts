@@ -59,26 +59,58 @@ Deno.serve(async (req: Request) => {
 
     const imageResponse = await fetch(imageUrl);
     if (!imageResponse.ok) {
+      console.error("Failed to fetch image:", imageResponse.status, imageResponse.statusText);
       return new Response(
-        JSON.stringify({ error: "Failed to fetch image" }),
+        JSON.stringify({ error: "Failed to fetch image", tags: [] }),
         {
-          status: 400,
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
     const imageBlob = await imageResponse.blob();
+    const imageSizeMB = imageBlob.size / (1024 * 1024);
+    console.log(`Processing image: ${imageSizeMB.toFixed(2)}MB, type: ${imageBlob.type}`);
+
+    if (imageSizeMB > 20) {
+      console.error("Image too large:", imageSizeMB, "MB");
+      return new Response(
+        JSON.stringify({ error: "Image too large", tags: [] }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const imageArrayBuffer = await imageBlob.arrayBuffer();
     const imageBase64 = btoa(
       String.fromCharCode(...new Uint8Array(imageArrayBuffer))
     );
+    console.log("Image converted to base64, length:", imageBase64.length);
 
+    const apiKey = Deno.env.get("OPENAI_API_KEY");
+    if (!apiKey) {
+      console.error("OPENAI_API_KEY not configured");
+      return new Response(
+        JSON.stringify({
+          error: "OpenAI API key not configured",
+          tags: [],
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    console.log("Calling OpenAI API...");
     const openAIResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${Deno.env.get("OPENAI_API_KEY")}`,
+        "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
@@ -105,10 +137,11 @@ Deno.serve(async (req: Request) => {
 
     if (!openAIResponse.ok) {
       const errorText = await openAIResponse.text();
-      console.error("OpenAI API error:", errorText);
+      console.error("OpenAI API error:", openAIResponse.status, errorText);
       return new Response(
         JSON.stringify({
           error: "AI tagging failed",
+          details: errorText,
           tags: [],
         }),
         {
@@ -120,11 +153,13 @@ Deno.serve(async (req: Request) => {
 
     const aiResult = await openAIResponse.json();
     const tagString = aiResult.choices[0]?.message?.content || "";
+    console.log("OpenAI response:", tagString);
     const aiTags = tagString
       .split(",")
       .map((tag: string) => tag.trim().toLowerCase())
       .filter((tag: string) => tag.length > 0);
 
+    console.log("Generated tags:", aiTags);
     return new Response(
       JSON.stringify({ tags: aiTags }),
       {
