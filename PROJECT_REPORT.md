@@ -1206,6 +1206,32 @@ WHERE ai.album_id = $1 AND i.deleted_at IS NULL;
 WHERE is_hidden = false OR (is_hidden = true AND $show_hidden = true)
 ```
 
+**Issue 5: AI Tagging Stack Overflow Error**
+- **Symptom:** AI tagging worked for images downloaded from the internet but failed with "Maximum call stack size exceeded" for images uploaded from PC
+- **Root Cause:** The spread operator in `String.fromCharCode(...new Uint8Array(imageArrayBuffer))` caused stack overflow when converting large image files to base64, particularly for high-resolution photos from local devices
+- **Analysis:**
+  - Images from web sources were often compressed/optimized (smaller file sizes)
+  - Images from PC (especially modern cameras/phones) were much larger raw files
+  - The spread operator tried to pass thousands of arguments at once, exceeding JavaScript's maximum call stack size
+- **Fix:** Implemented chunked conversion to base64 to handle large files:
+```typescript
+// Before (caused stack overflow on large images)
+const imageBase64 = btoa(
+  String.fromCharCode(...new Uint8Array(imageArrayBuffer))
+);
+
+// After (handles any size image)
+const uint8Array = new Uint8Array(imageArrayBuffer);
+let binaryString = '';
+const chunkSize = 8192;
+for (let i = 0; i < uint8Array.length; i += chunkSize) {
+  const chunk = uint8Array.slice(i, i + chunkSize);
+  binaryString += String.fromCharCode.apply(null, Array.from(chunk));
+}
+const imageBase64 = btoa(binaryString);
+```
+- **Result:** ✅ AI tagging now works reliably for all images regardless of source or size
+
 ### 8.4 Error Handling Strategy
 
 **Frontend Error Handling:**
