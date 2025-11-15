@@ -85,9 +85,17 @@ Deno.serve(async (req: Request) => {
     }
 
     const imageArrayBuffer = await imageBlob.arrayBuffer();
-    const imageBase64 = btoa(
-      String.fromCharCode(...new Uint8Array(imageArrayBuffer))
-    );
+    const uint8Array = new Uint8Array(imageArrayBuffer);
+
+    // Convert to base64 without stack overflow
+    let binaryString = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.slice(i, i + chunkSize);
+      binaryString += String.fromCharCode.apply(null, Array.from(chunk));
+    }
+    const imageBase64 = btoa(binaryString);
+
     console.log("Image converted to base64, length:", imageBase64.length);
 
     const apiKey = Deno.env.get("OPENAI_API_KEY");
