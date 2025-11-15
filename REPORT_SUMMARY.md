@@ -219,6 +219,11 @@ Client (React) → API Gateway (Edge Functions) → Storage (S3) + Database (Pos
 - **Solution:** Proper types, null checks, optional chaining
 - **Result:** Type-safe codebase
 
+**Challenge 11: AI Tagging Stack Overflow**
+- **Problem:** AI tagging worked for web images but crashed with PC uploads
+- **Solution:** Chunked base64 conversion instead of spread operator
+- **Result:** Reliable AI tagging for all image sizes
+
 ---
 
 ## Section 7: Database Design & Security
@@ -290,6 +295,7 @@ CREATE POLICY "Users can view own images"
 - Slow search → Database indexes (GIN on tags)
 - Wrong album count → Exclude deleted images
 - Hidden images in search → Filter by is_hidden
+- AI tagging stack overflow → Chunked base64 conversion for large images
 
 **Error Handling Strategy:**
 - Try-catch blocks everywhere
