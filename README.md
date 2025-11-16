@@ -5,17 +5,33 @@ A full-stack image upload and search application similar to Google Photos, built
 
 ## Features
 
-- Upload images with drag-and-drop interface
+### Core Features
+- **Upload images** with drag-and-drop interface
 - **🤖 AI-Powered Image Tagging** - Automatic content analysis using OpenAI GPT-4 Vision
 - Real-time image preview before upload
-- Search images by filename or AI-generated tags
-- Responsive grid layout with hover animations
+- **Smart Search** by filename or AI-generated tags (case-insensitive)
+- Responsive grid layout with hover animations (2-5 columns)
 - Cloud storage using AWS S3
 - PostgreSQL database for metadata storage
+
+### Organization Features
+- **Albums** - Create, manage, and organize images into albums
+- **Favorites** - Mark important images for quick access
+- **Hidden Folder** - Password-protected private storage
+- **Trash Bin** - Soft delete with restore and permanent delete options
+
+### User Features
+- **User Authentication** - Secure login/signup with JWT
+- **Data Isolation** - Row Level Security ensures complete privacy
+- **Rename Images** - Update image names directly
+- **Filter Options** - Show all, favorites, or hidden images
+
+### Technical Features
 - Modern, clean UI with Tailwind CSS
-- User authentication and secure data isolation
-- Albums, favorites, and hidden folder
-- Trash bin with restore functionality
+- 20 serverless Edge Functions for scalability
+- Optimized database queries with GIN indexes
+- Cross-browser compatible (Chrome, Firefox, Safari, Edge)
+- Fully responsive (mobile, tablet, desktop)
 
 ## Tech Stack
 
@@ -195,6 +211,17 @@ CREATE TABLE images (
    - Hover animations show filename and tags
    - Lazy loading for performance
 
+### AI Tagging Technical Details
+
+The AI tagging feature uses a chunked base64 conversion approach to handle images of all sizes:
+
+- **For web URLs:** Direct URL passing to OpenAI Vision API
+- **For uploaded files:** Chunked base64 encoding to prevent stack overflow
+- **Solution:** Processes large images in 50KB chunks instead of using spread operator
+- **Result:** Reliable tagging for images up to 10MB
+
+This approach solves the "Maximum call stack size exceeded" error that occurred with large image files when using `String.fromCharCode(...new Uint8Array(buffer))`.
+
 ## Deployment
 
 ### Frontend (Netlify)
@@ -248,28 +275,89 @@ S3_BUCKET_NAME=your_bucket_name
 
 ## Future Enhancements
 
-- User authentication and private galleries
-- AWS Rekognition for AI-generated tags
-- Image compression before upload
-- Bulk upload support
-- Delete functionality
-- Advanced filtering and sorting
-- Share links for images
+### AI & Intelligence
+- AWS Rekognition integration for enhanced object detection
+- Face detection and grouping
+- Scene detection and classification
+- Smart recommendations based on usage
+
+### Sharing & Collaboration
+- Share links for images/albums with expiration
+- Collaborative albums (multi-user)
+- Download albums as ZIP
+- Public gallery mode
+
+### Advanced Organization
+- Nested albums (sub-albums)
+- Custom tags management UI
+- Bulk operations (multi-select actions)
+- Drag-and-drop reorganization
+
+### Image Editing
+- Crop, rotate, flip
+- Filters and effects
+- Text and drawing overlay
+- Image compression settings
+
+### Performance & Storage
+- Image CDN for faster delivery
+- WebP format conversion
+- Thumbnail generation
+- Storage usage dashboard
+- Duplicate detection
+
+### Mobile
+- Native iOS/Android apps
+- Auto-upload from camera
+- Offline access
+- Push notifications
 
 ## Troubleshooting
 
-**Images not uploading:**
+### Images not uploading:
 - Check AWS credentials in `.env`
 - Verify S3 bucket CORS configuration
 - Check S3 bucket policy allows PUT operations
+- Ensure file size is under 10MB limit
+- Verify file type is a valid image format
 
-**Images not displaying:**
+### Images not displaying:
 - Verify S3 bucket policy allows public read access
 - Check that uploaded images are publicly accessible
+- Clear browser cache and reload
+- Check browser console for CORS errors
 
-**Search not working:**
+### Search not working:
 - Ensure database has image records
 - Check that tags are being generated correctly
+- Verify PostgreSQL GIN index exists on tags column
+- Test with simple single-word queries first
+
+### AI Tagging Issues:
+
+**AI tags not generating:**
+- Verify `OPENAI_API_KEY` is set in Supabase Edge Function Secrets
+- Check OpenAI API key has sufficient credits
+- Review `generate-tags` function logs in Supabase dashboard
+- Note: Image uploads work without AI tags, they're optional
+
+**Stack overflow error with large images:**
+- This was fixed in the latest version using chunked base64 conversion
+- If still occurring, ensure you're using the latest `generate-tags` function
+- The function now processes images in 50KB chunks
+- Maximum supported image size: 10MB
+
+### Authentication Issues:
+- Clear browser localStorage and retry login
+- Check Supabase auth configuration
+- Verify RLS policies are properly set up
+- Try incognito/private browsing mode
+
+### Performance Issues:
+- Check network connection speed
+- Verify Supabase and S3 are accessible
+- Clear browser cache
+- Check for console errors indicating failed requests
 
 ## License
 
