@@ -3,6 +3,7 @@ import UploadForm from './components/UploadForm';
 import SearchBar from './components/SearchBar';
 import ImageGrid from './components/ImageGrid';
 import AuthForm from './components/AuthForm';
+import ResetPasswordForm from './components/ResetPasswordForm';
 import Header from './components/Header';
 import FilterPanel from './components/FilterPanel';
 import TrashBin from './components/TrashBin';
@@ -29,6 +30,15 @@ function App() {
   const [isAlbumsOpen, setIsAlbumsOpen] = useState(false);
   const [isHiddenOpen, setIsHiddenOpen] = useState(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [isResetPassword, setIsResetPassword] = useState(false);
+
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get('type');
+    if (type === 'recovery') {
+      setIsResetPassword(true);
+    }
+  }, []);
 
   const fetchImages = async () => {
     if (!session) return;
@@ -137,6 +147,10 @@ function App() {
         </div>
       </div>
     );
+  }
+
+  if (isResetPassword) {
+    return <ResetPasswordForm onSuccess={() => setIsResetPassword(false)} />;
   }
 
   if (!user || !session) {
